@@ -1,8 +1,10 @@
 #!/usr/bin/env ruby
+# -*- coding: utf-8 -*-
 
 require 'json'
 require 'open-uri'
 require 'cgi'
+require 'csv'
 
 require 'rubygems'
 require 'twitter'
@@ -13,7 +15,7 @@ data_url = "http://www.library.yorku.ca/libstats/reportReturn.do?&library_id=&lo
 # ?date1=6%2F14%2F13+9%3A00+AM&date2=6%2F14%2F13+11%3A55+AM
 
 t_end   = Time.now
-t_start = t_end - 10*60 # Ten minutes ago
+t_start = t_end - 5*10*60 # Ten minutes ago
 
 ugly_date_format = "%m/%d/%y %l:%M %p"
  
@@ -41,14 +43,19 @@ Twitter.configure do |config|
   config.oauth_token_secret = settings["access_token_secret"]
 end
 
-open(tweet_csv_url, "login" => settings["login_cookie"]) do |f|
+csv = ""
+
+open(tweet_csv_url, "Cookie" => "login=#{settings["login_cookie"]}") do |f|
   unless f.status[0] == "200"
     # !FIX
     puts f.status
-    exit
   else
-    puts f.read
+    CSV.parse(f.read, {:headers => true, :header_converters => :symbol}) do |row|
+      puts row[:question_id], row[:library_name], row[:question_type], row[:time_spent]
+    end
   end
 end
 
 # Twitter.update("First test tweet")
+
+# puts "■ □"

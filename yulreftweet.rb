@@ -5,9 +5,12 @@ require 'json'
 require 'open-uri'
 require 'cgi'
 require 'csv'
+require 'logger'
 
 require 'rubygems'
 require 'twitter'
+
+logger = Logger.new('/tmp/yulreftweet.log', 'daily')
 
 settings = {}
 
@@ -45,11 +48,11 @@ csv = []
 open(tweet_csv_url, "Cookie" => "login=#{settings["login_cookie"]}") do |f|
   unless f.status[0] == "200"
     # !FIX
-    puts f.status
+    logger.warn f.status
   else
     data = f.read
     if data == "\n"
-      STDERR.puts "Nothing to report"
+      logger.info "Nothing to report"
       exit
     else
     csv = CSV.parse(data, {:headers => true, :header_converters => :symbol})
@@ -60,19 +63,18 @@ end
 tweets_to_make = csv.size
 delay = (300 / tweets_to_make).floor - 5
 
-STDERR.puts "Tweets: #{tweets_to_make}. Delay: #{delay} seconds"
+logger.info "Tweets: #{tweets_to_make}. Delay: #{delay} seconds"
 
 csv.each do |row|
-  puts "'#{row}'"
   next if row[:library_name] == "Scott Information" # Too busy!
   type = row[:question_type][0,1].to_i # 1, 2, 3, 4, or 5
   type_string = "■ " * type + "□ " * (5 - type)
   tweet = "#{type_string} #{row[:library_name]} #{row[:time_spent]} (#{row[:question_id]})"
-  puts tweet
+  logger.debug tweet
   begin
     Twitter.update(tweet)
   rescue Exception => e
-    STDERR.puts "Error: #{e}"
+    logger.error "Error: #{e}"
   end
   sleep delay
 end

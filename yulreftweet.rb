@@ -81,7 +81,8 @@ end
 tweets_to_make = csv.size
 delay = (300 / tweets_to_make).floor - 5
 
-logger.info "Tweets: #{tweets_to_make} (delay #{delay} secondss)"
+logger.info "Tweets: #{tweets_to_make}"
+logger.debug "Delay: #{delay} seconds)"
 
 csv.each do |row|
   next if row[:library_name] == "Scott Information" # Too busy!
@@ -96,6 +97,7 @@ csv.each do |row|
       logger.error "Error tweeting (#{tweet}): #{e}"
     end
     sleep delay
+    # TODO No need to sleep after last tweet; stop doing this
   end
 end
 

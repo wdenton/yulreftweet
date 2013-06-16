@@ -47,8 +47,7 @@ csv = []
 
 open(tweet_csv_url, "Cookie" => "login=#{settings["login_cookie"]}") do |f|
   unless f.status[0] == "200"
-    # !FIX
-    logger.warn f.status
+    logger.warn "Could not download data: status #{f.status}"
   else
     data = f.read
     if data == "\n"
@@ -67,7 +66,7 @@ logger.info "Tweets: #{tweets_to_make}. Delay: #{delay} seconds"
 
 csv.each do |row|
   next if row[:library_name] == "Scott Information" # Too busy!
-  type = row[:question_type][0,1].to_i # 1, 2, 3, 4, or 5
+  type = row[:question_type][0,1].to_i # Will be [1..5]
   type_string = "■ " * type + "□ " * (5 - type)
   tweet = "#{row[:library_name]} #{type_string} #{row[:time_spent]} (#{row[:question_id]})"
   logger.debug tweet

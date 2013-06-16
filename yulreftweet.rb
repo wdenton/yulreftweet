@@ -69,7 +69,7 @@ csv.each do |row|
   next if row[:library_name] == "Scott Information" # Too busy!
   type = row[:question_type][0,1].to_i # 1, 2, 3, 4, or 5
   type_string = "■ " * type + "□ " * (5 - type)
-  tweet = "#{type_string} #{row[:library_name]} #{row[:time_spent]} (#{row[:question_id]})"
+  tweet = "#{row[:library_name]} #{type_string} #{row[:time_spent]} (#{row[:question_id]})"
   logger.debug tweet
   begin
     Twitter.update(tweet)

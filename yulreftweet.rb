@@ -77,3 +77,5 @@ csv.each do |row|
   end
   sleep delay
 end
+
+logger.close

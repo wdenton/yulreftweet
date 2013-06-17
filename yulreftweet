@@ -46,7 +46,8 @@ start_time = t_start.strftime(ugly_date_format)
 
 tweet_csv_url = data_url + "&date1=#{CGI.escape(start_time)}&date2=#{CGI.escape(end_time)}"
 
-logger.debug tweet_csv_url
+logger.debug "Start: #{t_start.strftime("%F %R")}. End: #{t_end.strftime("%F %R")}."
+logger.debug "CSV data URL: #{tweet_csv_url}"
 
 begin
   settings = JSON.parse(File.read("config.json"))

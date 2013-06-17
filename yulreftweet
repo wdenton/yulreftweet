@@ -20,7 +20,7 @@ OptionParser.new do |opts|
   opts.on("--verbose", "Be verbose") { options[:verbose] = true }
 end.parse!
 
-logger = Logger.new('/tmp/yulreftweet.log', 'daily') # TODO Stop hardcoding
+logger = Logger.new(STDOUT)
 if options[:verbose]
   logger.level = Logger::DEBUG
 else
@@ -81,6 +81,7 @@ open(tweet_csv_url, "Cookie" => "login=#{settings["login_cookie"]}") do |f|
       logger.debug "Delay: #{delay} seconds)"
 
       csv.each do |row|
+        #  Post one tweet for each question, at a leisurely pace
         next if row[:library_name] == "Scott Information" # Too busy!
         type = row[:question_type][0,1].to_i # Will be [1..5]
         type_string = "■ " * type + "□ " * (5 - type)

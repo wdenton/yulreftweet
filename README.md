@@ -14,7 +14,7 @@ The fields are:
 * duration
 * ID number (to make the tweets nonidentical, so Twitter won't reject them)
 
-The question types come from the modified Warner scale we use:
+The question types come from the modified [READ scale](http://readscale.org/read-scale.html) we use:
 
 1. Non-Resource (e.g. directional)
 2. Skill-Based: Tech Support (e.g. printer jam)

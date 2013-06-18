@@ -1,7 +1,7 @@
 yulreftweet
 ===========
 
-This Ruby script posts [York University Libraries](http://www.library.yorku.ca/) reference desk activity to the [@yulreference](https://twitter.com/yulreference) account on Twitter.
+This Ruby script posts [York University Libraries](http://www.library.yorku.ca/) reference activity to the [@yulreference](https://twitter.com/yulreference) account on Twitter.
 
 The tweets have four fields, like this:
 

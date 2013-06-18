@@ -50,13 +50,11 @@ It's probably best to run this from cron, with something like (assuming you've c
 
 The script runs every five minutes and requests the last five minutes of activity. The script depends on Twitter to prevent posting duplicate tweets: Twitter rejects a tweet that is identical to a previous one.
 
+Warning: if you use [RVM](http://rvm.io/) then calling the script from cron won't work (see [Using RVM with Cron](https://rvm.io/integration/cron)). The `rvm_wrapper.sh` script is meant to fix this, but it doesn't work right now.
+
 To test it, run it with --verbose and --notweet:
 
     ./yulreftweet --verbose --notweet
-
-## Future plans
-
-* Include charts!
 
 
 

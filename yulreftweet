@@ -85,44 +85,51 @@ Twitter.configure do |config|
   config.oauth_token_secret = settings["access_token_secret"]
 end
 
-open(tweet_csv_url, "Cookie" => "login=#{settings["login_cookie"]}") do |f|
+begin
+  open(tweet_csv_url, "Cookie" => "login=#{settings["login_cookie"]}") do |f|
 
-  unless f.status[0] == "200"
-    logger.warn "Could not download data: status #{f.status}"
-  else
-    data = f.read
-    if data == "\n"
-      # LibStats returns a newline if there is no data ... inelegant, but we can deal with it.
-      logger.info "Questions: 0"
+    unless f.status[0] == "200"
+      logger.warn "Could not download data: status #{f.status}"
     else
-      csv = CSV.parse(data, {:headers => true, :header_converters => :symbol})
-      # Silently drop activity at the Scott info desk, which is too busy
-      # and would overwhelm Twitter.
-      csv.delete_if {|row| row[:library_name] == "Scott Information"}
+      data = f.read
+      if data == "\n"
+        # LibStats returns a newline if there is no data ... inelegant, but we can deal with it.
+        logger.info "Questions: 0"
+      else
+        csv = CSV.parse(data, {:headers => true, :header_converters => :symbol})
+        # Silently drop activity at the Scott info desk, which is too busy
+        # and would overwhelm Twitter.
+        csv.delete_if {|row| row[:library_name] == "Scott Information"}
 
-      tweets_to_make = csv.size
-      delay = (300 / tweets_to_make).floor - 5
-      logger.info "Questions: #{tweets_to_make}"
-      logger.debug "Delay: #{delay} seconds)"
+        if csv.size > 0
+          delay = (300 / tweets_to_make).floor - 5
+          logger.info "Questions: #{csv.size}"
+          logger.debug "Delay: #{delay} seconds)"
 
-      csv.each do |row|
-        # Post one tweet for each question, at a leisurely pace
-        type = row[:question_type][0,1].to_i # Will be [1..5]
-        type_string = "■ " * type + "□ " * (5 - type)
-        tweet = "#{row[:library_name]} #{type_string} #{row[:time_spent]} (#{row[:question_id]})"
-        logger.debug tweet
-        unless options[:notweet]
-          begin
-            Twitter.update(tweet)
-          rescue Exception => e
-            logger.error "Error tweeting (#{tweet}): #{e}"
+          csv.each do |row|
+            # Post one tweet for each question, at a leisurely pace
+            type = row[:question_type][0,1].to_i # Will be [1..5]
+            type_string = "■ " * type + "□ " * (5 - type)
+            tweet = "#{row[:library_name]} #{type_string} #{row[:time_spent]} (#{row[:question_id]})"
+            logger.debug tweet
+            unless options[:notweet]
+              begin
+                Twitter.update(tweet)
+              rescue Exception => e
+                logger.error "Error tweeting (#{tweet}): #{e}"
+              end
+              sleep delay
+              # TODO No need to sleep after last tweet; stop doing this
+            end
           end
-          sleep delay
-          # TODO No need to sleep after last tweet; stop doing this
+
+          logger.close      
+
         end
       end
-
-      logger.close      
     end
   end
+
+rescue Exception => e
+  logger.warn "Could not download data: #{e}"
 end

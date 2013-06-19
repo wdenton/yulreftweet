@@ -102,7 +102,7 @@ begin
         csv.delete_if {|row| row[:library_name] == "Scott Information"}
 
         if csv.size > 0
-          delay = (300 / tweets_to_make).floor - 5
+          delay = (300 / csv.size).floor - 5
           logger.info "Questions: #{csv.size}"
           logger.debug "Delay: #{delay} seconds)"
 

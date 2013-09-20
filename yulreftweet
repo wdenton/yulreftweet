@@ -29,6 +29,7 @@ require 'cgi'
 require 'csv'
 require 'logger'
 require 'optparse'
+require 'nokogiri'
 
 require 'rubygems'
 require 'twitter'
@@ -38,8 +39,9 @@ options[:verbose] = false
 options[:notweet] = false
 OptionParser.new do |opts|
   opts.banner = "Usage: yulreftweet [--notweet] [--verbose]"
-  opts.on("--notweet", "Do not actually tweet anything") { options[:notweet] = true }
-  opts.on("--verbose", "Be verbose") { options[:verbose] = true }
+  opts.on("--notweet",       "Do not actually tweet anything")         { options[:notweet] = true }
+  opts.on("--showquestions", "Tweet the question asked, if available") { options[:showquestions] = true }
+  opts.on("--verbose",       "Be verbose")                             { options[:verbose] = true }
 end.parse!
 
 logger = Logger.new(STDOUT)
@@ -53,9 +55,15 @@ if options[:notweet]
   logger.info "--notweet specified; no tweeting will happen"
 end
 
+if options[:showquestions]
+  logger.info "--showquestions specified; questions will be made public"
+end
+
 settings = {}
 
 data_url = "http://www.library.yorku.ca/libstats/reportReturn.do?&library_id=&location_id=&report_id=DataCSVReport"
+
+question_url_base = "http://www.library.yorku.ca/libstats/questionEditForm.do?questionId=" # Paste on question ID
 
 t_end   = Time.now
 t_start = t_end - 5*60 # Five minutes ago
@@ -104,14 +112,34 @@ begin
         if csv.size > 0
           delay = (300 / csv.size).floor - 5
           logger.info "Questions: #{csv.size}"
-          logger.debug "Delay: #{delay} seconds)"
+          logger.debug "Delay: #{delay} seconds"
 
           csv.each do |row|
+
+            logger.debug "Processing #{row[:question_id]} ..."
+            
             # Post one tweet for each question, at a leisurely pace
             type = row[:question_type][0,1].to_i # Will be [1..5]
             type_string = "■ " * type + "□ " * (5 - type)
-            tweet = "#{row[:library_name]} #{type_string} #{row[:time_spent]} (#{row[:question_id]})"
+            tweet = "#{row[:library_name]} #{type_string} #{row[:time_spent]} (ID #{row[:question_id]}) "
+
+            if options[:showquestions]
+              question_url = question_url_base + row[:question_id]
+
+              open(question_url, "Cookie" => "login=#{settings["login_cookie"]}") do |q|
+                unless q.status[0] == "200"
+                  logger.warn "Could not get question: status #{q.status}"
+                else
+                  question = Nokogiri::HTML(q.read).css("div#qBox textarea#question").text
+                  logger.debug "Question: #{question}"
+                  question_room = 139 - tweet.size # Leave one character room?
+                  tweet = tweet + question[0, question_room]
+                end
+              end
+            end
+
             logger.debug tweet
+
             unless options[:notweet]
               begin
                 Twitter.update(tweet)

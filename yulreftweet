@@ -70,7 +70,7 @@ t_start = t_end - 5*60 # Five minutes ago
 # t_start = t_end - 24*60*60 # One day ago (lots of results for testing)
 
 ugly_date_format = "%m/%d/%y %l:%M %p"
- 
+
 end_time = t_end.strftime(ugly_date_format)
 start_time = t_start.strftime(ugly_date_format)
 
@@ -86,11 +86,11 @@ rescue Exception => e
   exit
 end
 
-Twitter.configure do |config|
+client = Twitter::REST::Client.new do |config|
   config.consumer_key       = settings["consumer_key"]
   config.consumer_secret    = settings["consumer_secret"]
-  config.oauth_token        = settings["access_token"]
-  config.oauth_token_secret = settings["access_token_secret"]
+  config.access_token        = settings["access_token"]
+  config.access_token_secret = settings["access_token_secret"]
 end
 
 begin
@@ -117,7 +117,7 @@ begin
           csv.each do |row|
 
             logger.debug "Processing #{row[:question_id]} ..."
-            
+
             # Post one tweet for each question, at a leisurely pace
             type = row[:question_type][0,1].to_i # Will be [1..5]
             type_string = "■ " * type + "□ " * (5 - type)
@@ -142,7 +142,7 @@ begin
 
             unless options[:notweet]
               begin
-                Twitter.update(tweet)
+                client.update(tweet)
               rescue Exception => e
                 logger.error "Error tweeting (#{tweet}): #{e}"
               end
@@ -151,7 +151,7 @@ begin
             end
           end
 
-          logger.close      
+          logger.close
 
         end
       end
